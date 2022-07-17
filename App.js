@@ -5,8 +5,6 @@ import {
   StatusBar,
 } from "react-native";
 import AppNavigator from "./components/AppNavigator";
-import EditProfile from "./components/EditProfile";
-import UserProfile from "./components/UserProfile";
 
 
 const App = () => {

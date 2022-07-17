@@ -9,6 +9,7 @@ import Search from "./Search";
 import AddImage from "./AddImage";
 import Notification from "./Notification";
 import Chat from "./Chat";
+import NewChat from "./NewChat";
 
 const { Navigator, Screen } = createStackNavigator();
 
@@ -29,6 +30,7 @@ function AppNavigator() {
         <Screen name="AddImage" component={AddImage}></Screen>
         <Screen name="Notification" component={Notification}></Screen>
         <Screen name="Chat" component={Chat}></Screen>
+        <Screen name="NewChat" component={NewChat}></Screen>
       </Navigator>
     </NavigationContainer>
   );
