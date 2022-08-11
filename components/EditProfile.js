@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet, Text, TextInput } from "react-native";
 import { Avatar } from "react-native-elements";
 
@@ -6,12 +6,77 @@ import { AntDesign } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch, useSelector } from "react-redux";
+import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import { BASE_URL } from "./api";
+import { update } from "../redux/userSlice";
+
 const EditProfile = (props) => {
-  const [name, setName] = React.useState("");
-  const [username, setUsername] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [mobile, setMobile] = React.useState("");
-  const [bio, setBio] = React.useState("");
+  const currentUser = useSelector((state) => state.user);
+  const [image, setImage] = React.useState(null);
+  const [name, setName] = React.useState(currentUser.user.name);
+  const [username, setUsername] = React.useState(
+    currentUser.user.username
+  );
+  const [email, setEmail] = React.useState(currentUser.user.email);
+  const [mobile, setMobile] = React.useState(
+    currentUser.user.mobile ? String(currentUser.user.mobile) : ""
+  );
+  const [age, setAge] = React.useState(
+    currentUser.user.age ? String(currentUser.user.age) : ""
+  );
+  const [user, setUser] = React.useState();
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem("userCredentials");
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    getData();
+  }, []);
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.2,
+      base64: true,
+    });
+
+    if (!result.cancelled) {
+      setImage(`data:image/jpg;base64,${result.base64}`);
+    }
+  };
+
+  const handleSave = async () => {
+    console.log("click");
+    await axios
+      .post(`${BASE_URL}/profile/update`, {
+        id: user.result._id,
+        name,
+        email,
+        username,
+        mobile,
+        age,
+        profileImg: image || currentUser.user.profileImg || null,
+      })
+      .then((res) => {
+        dispatch(update(res.data));
+        props.navigation.navigate("UserProfile", {
+          username: user.result.username,
+        });
+      });
+  };
 
   return (
     <View style={styles.editProfile}>
@@ -21,25 +86,29 @@ const EditProfile = (props) => {
             name="close"
             size={24}
             color="black"
-            onPress={() => props.navigation.navigate("UserProfile")}
+            onPress={() =>
+              props.navigation.navigate("UserProfile", {
+                username: user.result.username,
+              })
+            }
           />
           <Text style={styles.title}>Edit Profile</Text>
         </View>
-        <Entypo
-          name="check"
-          size={24}
-          color="blue"
-          onPress={() => props.navigation.navigate("UserProfile")}
-        />
+        <Entypo name="check" size={24} color="blue" onPress={handleSave} />
       </View>
       <View style={styles.profilePhoto}>
         <Avatar
+          onPress={() => pickImage()}
           containerStyle={styles.myAvatar}
           rounded
           size={80}
-          source={require("../assets/pasan.jpg")}
+          source={
+            (image && { uri: image }) || {
+              uri: `${currentUser.user.profileImg}`,
+            }
+          }
         />
-        <Text>
+        <Text onPress={() => pickImage()}>
           <Feather name="edit-2" size={15} color="black" /> Change Profile Photo
         </Text>
       </View>
@@ -68,7 +137,7 @@ const EditProfile = (props) => {
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder={email === "" ? "Username" : null}
+            placeholder={email === "" ? "Email" : null}
           />
         </View>
         <View>
@@ -77,16 +146,16 @@ const EditProfile = (props) => {
             style={styles.input}
             value={mobile}
             onChangeText={setMobile}
-            placeholder={mobile === "" ? "Username" : null}
+            placeholder={mobile === "" ? "Mobile" : null}
           />
         </View>
         <View>
-          {bio === "" ? null : <Text style={styles.label}>Bio</Text>}
+          {age === "" ? null : <Text style={styles.label}>Age</Text>}
           <TextInput
             style={styles.input}
-            value={bio}
-            onChangeText={setBio}
-            placeholder={bio === "" ? "Bio" : null}
+            value={age}
+            onChangeText={setAge}
+            placeholder={age === "" ? "Age" : null}
           />
         </View>
       </View>

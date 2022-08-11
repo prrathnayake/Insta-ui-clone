@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
@@ -8,8 +8,12 @@ import { Feather } from "@expo/vector-icons";
 import { Octicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSelector } from "react-redux";
+
 const Menu = (props) => {
   const route = useRoute();
+  const currentUser = useSelector((state) => state.user);
 
   return (
     <View style={styles.menu}>
@@ -41,13 +45,15 @@ const Menu = (props) => {
           color="black"
           onPress={() => props.navigation.navigate("AddImage")}
         />
-        <Avatar
+        {currentUser.user && <Avatar
           containerStyle={styles.myAvatar}
           rounded
           size={30}
-          source={require("../assets/pasan.jpg")}
-          onPress={() => props.navigation.navigate("UserProfile")}
-        />
+          source={currentUser.user && currentUser.user.profileImg !== null
+            ? { uri: `${currentUser.user.profileImg}` }
+            : require("../assets/no_ProfileImg.png")}
+          onPress={() => props.navigation.navigate("UserProfile", {username: currentUser.user.username})}
+        />}
       </View>
     </View>
   );

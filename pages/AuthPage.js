@@ -3,8 +3,8 @@ import {
   View,
   StyleSheet,
 } from "react-native";
-import Login from "./Login";
-import Signin from "./Signin";
+import Login from "../components/Login";
+import Signin from "../components/Signin";
 
 const AuthPage = (props) => {
 
